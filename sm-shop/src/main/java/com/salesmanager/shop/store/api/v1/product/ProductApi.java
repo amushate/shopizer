@@ -369,9 +369,9 @@ public class ProductApi {
 	@ApiImplicitParams({ @ApiImplicitParam(name = "store", dataType = "String", defaultValue = "DEFAULT"),
 			@ApiImplicitParam(name = "lang", dataType = "String", defaultValue = "en") })
 	public ReadableProduct getByfriendlyUrl(@PathVariable final String friendlyUrl,
-			@RequestParam(value = "lang", required = false) String lang, @ApiIgnore MerchantStore merchantStore,
+			@RequestParam(value = "lang", required = false, defaultValue = "en") String lang, @ApiIgnore MerchantStore merchantStore,
 			@ApiIgnore Language language, HttpServletResponse response) throws Exception {
-		ReadableProduct product = productFacade.getProductBySeUrl(merchantStore, friendlyUrl, language);
+		ReadableProduct product = productFacade.getProductBySeUrl(merchantStore, friendlyUrl, "en");
 
 		if (product == null) {
 			response.sendError(404, "Product not fount for id " + friendlyUrl);

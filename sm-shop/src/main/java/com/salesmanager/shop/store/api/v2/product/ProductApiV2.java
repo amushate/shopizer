@@ -131,6 +131,22 @@ public class ProductApiV2 {
 
 	}
 
+	@ResponseStatus(HttpStatus.CREATED)
+	@PostMapping(value = { "/private/product/definition" })
+	@ApiImplicitParams({ @ApiImplicitParam(name = "store", dataType = "String", defaultValue = "DEFAULT"),
+			@ApiImplicitParam(name = "lang", dataType = "String", defaultValue = "en") })
+	public @ResponseBody Entity createV2definition(@Valid @RequestBody PersistableProductDefinition product,
+										 @ApiIgnore MerchantStore merchantStore, @ApiIgnore Language language) {
+
+		// make sure product id is null
+		product.setId(null);
+		Long id = productDefinitionFacade.saveProductDefinition(merchantStore, product, language);
+		Entity returnEntity = new Entity();
+		returnEntity.setId(id);
+		return returnEntity;
+
+	}
+
 	@ResponseStatus(HttpStatus.OK)
 	@PutMapping(value = { "/private/product/{id}" })
 	@ApiImplicitParams({ @ApiImplicitParam(name = "store", dataType = "String", defaultValue = "DEFAULT"),
@@ -188,10 +204,10 @@ public class ProductApiV2 {
 			@ApiImplicitParam(name = "lang", dataType = "String", defaultValue = "en") })
 	public ReadableProduct getByfriendlyUrl(
 			@PathVariable final String friendlyUrl,
-			@RequestParam(value = "lang", required = false) String lang, @ApiIgnore MerchantStore merchantStore,
+			@RequestParam(value = "lang", required = false, defaultValue = "en") String lang, @ApiIgnore MerchantStore merchantStore,
 			@ApiIgnore Language language, HttpServletResponse response) throws Exception {
 		
-		ReadableProduct product = productFacadeV2.getProductBySeUrl(merchantStore, friendlyUrl, language);
+		ReadableProduct product = productFacadeV2.getProductBySeUrl(merchantStore, friendlyUrl, lang);
 
 		if (product == null) {
 			response.sendError(404, "Product not fount for id " + friendlyUrl);

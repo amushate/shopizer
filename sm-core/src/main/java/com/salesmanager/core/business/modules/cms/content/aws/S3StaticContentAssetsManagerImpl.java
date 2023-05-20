@@ -6,6 +6,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import com.amazonaws.auth.AWSCredentials;
+import com.amazonaws.auth.AWSStaticCredentialsProvider;
+import com.amazonaws.auth.BasicAWSCredentials;
+import com.amazonaws.client.builder.AwsClientBuilder;
+import com.amazonaws.regions.Regions;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -28,6 +33,7 @@ import com.salesmanager.core.business.modules.cms.impl.CMSManager;
 import com.salesmanager.core.model.content.FileContentType;
 import com.salesmanager.core.model.content.InputContentFile;
 import com.salesmanager.core.model.content.OutputContentFile;
+import org.springframework.beans.factory.annotation.Value;
 
 /**
  * Static content management with S3
@@ -44,6 +50,16 @@ public class S3StaticContentAssetsManagerImpl implements ContentAssetsManager {
 	private static S3StaticContentAssetsManagerImpl fileManager = null;
 
 	private CMSManager cmsManager;
+
+	@Value("${config.cms.contentBaseUrl}")
+	private String contentBaseUrl;
+
+
+	@Value("${AWS_ACCESS_KEY_ID}")
+	private String awsAccessKeyId;
+
+	@Value("${AWS_SECRET_ACCESS_KEY}")
+	private String awsSecretAccessKey;
 
 	public static S3StaticContentAssetsManagerImpl getInstance() {
 
@@ -269,18 +285,35 @@ public class S3StaticContentAssetsManagerImpl implements ContentAssetsManager {
 	 * 
 	 * @return
 	 */
+//	private AmazonS3 s3Client() {
+//		String region = regionName();
+//		LOGGER.debug("AWS CMS Using region " + region);
+//
+//		return AmazonS3ClientBuilder.standard().withRegion(region) // The
+//																			// first
+//																			// region
+//																			// to
+//																			// try
+//																			// your
+//																			// request
+//																			// against
+//				.build();
+//	}
+/**
+	 * Builds an amazon S3 client
+	 *
+	 * @return
+	 */
 	private AmazonS3 s3Client() {
 		String region = regionName();
 		LOGGER.debug("AWS CMS Using region " + region);
 
-		return AmazonS3ClientBuilder.standard().withRegion(region) // The
-																			// first
-																			// region
-																			// to
-																			// try
-																			// your
-																			// request
-																			// against
+		AWSCredentials s3Credential = new BasicAWSCredentials(awsAccessKeyId, awsSecretAccessKey);
+		return AmazonS3ClientBuilder
+				.standard()
+				.withEndpointConfiguration(new AwsClientBuilder.EndpointConfiguration(contentBaseUrl, Regions.US_EAST_1.name()))
+				.withPathStyleAccessEnabled(true)
+				.withCredentials(new AWSStaticCredentialsProvider(s3Credential))
 				.build();
 	}
 

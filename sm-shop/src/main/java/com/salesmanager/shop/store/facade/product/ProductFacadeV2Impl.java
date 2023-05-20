@@ -7,6 +7,7 @@ import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 
+import com.salesmanager.core.business.services.reference.language.LanguageService;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -71,6 +72,9 @@ public class ProductFacadeV2Impl implements ProductFacade {
 	
 	@Autowired
 	private ProductAttributeService productAttributeService;
+
+	@Inject
+	private LanguageService languageService;
 	
 	@Inject
 	private PricingService pricingService;
@@ -145,6 +149,30 @@ public class ProductFacadeV2Impl implements ProductFacade {
 		
 		return readableProduct;
 		
+	}
+
+	@Override
+	public ReadableProduct getProductBySeUrl(MerchantStore store, String friendlyUrl, String lang)
+			throws Exception {
+		Language language = languageService.getByCode(lang);
+		Product product = productService.getBySeUrl(store, friendlyUrl, LocaleUtils.getLocale(language));
+
+		if (product == null) {
+			throw new ResourceNotFoundException("Product [" + friendlyUrl + "] not found for merchant [" + store.getCode() + "]");
+		}
+
+		ReadableProduct readableProduct = readableProductMapper.convert(product, store, language);
+
+		//get all instances for this product group by option
+		//limit to 15 searches
+		List<ProductVariant> instances = productVariantService.getByProductId(store, product, language);
+
+		//the above get all possible images
+		List<ReadableProductVariant> readableInstances = instances.stream().map(p -> this.productVariant(p, store, language)).collect(Collectors.toList());
+		readableProduct.setVariants(readableInstances);
+
+		return readableProduct;
+
 	}
 
 	/**

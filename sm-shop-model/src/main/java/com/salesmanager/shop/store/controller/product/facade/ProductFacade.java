@@ -57,6 +57,8 @@ public interface ProductFacade {
    */
   ReadableProduct getProductBySeUrl(MerchantStore store, String friendlyUrl, Language language) throws Exception;
 
+  ReadableProduct getProductBySeUrl(MerchantStore store, String friendlyUrl, String language) throws Exception;
+
   /**
    * Filters a list of product based on criteria
    *

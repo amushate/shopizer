@@ -7,6 +7,7 @@ import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 
+import com.salesmanager.core.business.services.reference.language.LanguageService;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.Validate;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -55,6 +56,9 @@ public class ProductFacadeImpl implements ProductFacade {
 
 	@Inject
 	private ProductRelationshipService productRelationshipService;
+
+	@Inject
+	private LanguageService languageService;
 
 
 	@Inject
@@ -207,6 +211,25 @@ public class ProductFacadeImpl implements ProductFacade {
 	public ReadableProduct getProductBySeUrl(MerchantStore store, String friendlyUrl, Language language) throws Exception {
 
 		Product product = productService.getBySeUrl(store, friendlyUrl, LocaleUtils.getLocale(language));
+
+		if (product == null) {
+			return null;
+		}
+
+		ReadableProduct readableProduct = new ReadableProduct();
+
+		ReadableProductPopulator populator = new ReadableProductPopulator();
+
+		populator.setPricingService(pricingService);
+		populator.setimageUtils(imageUtils);
+		populator.populate(product, readableProduct, store, language);
+
+		return readableProduct;
+	}
+	@Override
+	public ReadableProduct getProductBySeUrl(MerchantStore store, String friendlyUrl, String lang) throws Exception {
+		Language language = languageService.getByCode(lang);
+		Product product = productService.getById(Long.valueOf(friendlyUrl));//SeUrl(store, friendlyUrl, LocaleUtils.getLocale(language));
 
 		if (product == null) {
 			return null;
